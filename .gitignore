@@ -1,0 +1,9 @@
+﻿node_modules/
+.env
+.env.local
+*.db
+*.sqlite
+*.sqlite3
+.next/
+dist/
+build/
