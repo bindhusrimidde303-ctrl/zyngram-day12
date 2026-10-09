@@ -1,3 +1,4 @@
+```javascript
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 
@@ -12,7 +13,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.log("Zynora SQLite database connected.");
 
     db.serialize(() => {
-        // Conversations table
+        // Conversations
         db.run(`
             CREATE TABLE IF NOT EXISTS Conversations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,7 +24,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             )
         `);
 
-        // Messages table
+        // Messages
         db.run(`
             CREATE TABLE IF NOT EXISTS Messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,7 +39,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             )
         `);
 
-        // Message sources table
+        // Message sources
         db.run(`
             CREATE TABLE IF NOT EXISTS MessageSources (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +53,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             )
         `);
 
-        // AI response evaluations table
+        // AI response evaluations
         db.run(`
             CREATE TABLE IF NOT EXISTS AIResponseEvaluations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,7 +73,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             )
         `);
 
-        // Production logs table
+        // Production logs
         db.run(`
             CREATE TABLE IF NOT EXISTS ProductionLogs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,38 +87,65 @@ const db = new sqlite3.Database(dbPath, (err) => {
             )
         `);
 
-        // Verify that the tables exist
-        db.each(
+        // Knowledge documents
+        db.run(`
+            CREATE TABLE IF NOT EXISTS KnowledgeDocuments (
+                id INTEGER PRIMARY KEY,
+                title VARCHAR(200) NOT NULL,
+                category VARCHAR(100) NOT NULL,
+                content TEXT NOT NULL,
+                source VARCHAR(255),
+                version VARCHAR(50) NOT NULL,
+                status VARCHAR(30) DEFAULT 'DRAFT',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // Knowledge chunks
+        db.run(`
+            CREATE TABLE IF NOT EXISTS KnowledgeChunks (
+                id INTEGER PRIMARY KEY,
+                document_id INTEGER NOT NULL,
+                chunk_index INTEGER NOT NULL,
+                title VARCHAR(200),
+                category VARCHAR(100),
+                section VARCHAR(200),
+                version VARCHAR(50),
+                source VARCHAR(255),
+                status VARCHAR(30) DEFAULT 'DRAFT',
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (document_id) REFERENCES KnowledgeDocuments(id)
+            )
+        `);
+
+        // Verify database tables
+        db.all(
             `SELECT name
              FROM sqlite_master
              WHERE type = 'table'
              AND name IN (
-                 'Conversations',
-                 'Messages',
-                 'MessageSources',
-                 'AIResponseEvaluations',
-                 'ProductionLogs'
-             )`,
-            (err, row) => {
-                if (err) {
+                'Conversations',
+                'Messages',
+                'MessageSources',
+                'AIResponseEvaluations',
+                'ProductionLogs',
+                'KnowledgeDocuments',
+                'KnowledgeChunks'
+             )
+             ORDER BY name`,
+            [],
+            (verifyErr, rows) => {
+                if (verifyErr) {
                     console.error(
-                        "Table verification failed:",
-                        err.message
-                    );
-                } else {
-                    console.log("Database table ready:", row.name);
-                }
-            },
-            (err, count) => {
-                if (err) {
-                    console.error(
-                        "Database table verification error:",
-                        err.message
+                        "Database table verification failed:",
+                        verifyErr.message
                     );
                 } else {
                     console.log(
                         "Database tables verified:",
-                        count
+                        rows.map((row) => row.name)
                     );
                 }
             }
@@ -126,3 +154,4 @@ const db = new sqlite3.Database(dbPath, (err) => {
 });
 
 module.exports = db;
+```
