@@ -1,4 +1,3 @@
-
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 
@@ -50,8 +49,43 @@ const db = new sqlite3.Database(dbPath, (err) => {
             )
         `);
 
+        db.run(`
+            CREATE TABLE IF NOT EXISTS AIResponseEvaluations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                conversation_id INTEGER,
+                message_id INTEGER,
+                question TEXT NOT NULL,
+                retrieved_chunks INTEGER DEFAULT 0,
+                relevance_score REAL DEFAULT 0,
+                answer TEXT,
+                source TEXT,
+                response_time_ms INTEGER,
+                grounded INTEGER DEFAULT 0,
+                confidence REAL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (conversation_id) REFERENCES Conversations(id),
+                FOREIGN KEY (message_id) REFERENCES Messages(id)
+            )
+        `, (tableError) => {
+            if (tableError) {
+                console.error(
+                    "AIResponseEvaluations table creation failed:",
+                    tableError.message
+                );
+            } else {
+                console.log("AIResponseEvaluations table ready.");
+            }
+        });
+
         db.each(
-            "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('Conversations', 'Messages', 'MessageSources')",
+            `SELECT name FROM sqlite_master
+             WHERE type = 'table'
+             AND name IN (
+                 'Conversations',
+                 'Messages',
+                 'MessageSources',
+                 'AIResponseEvaluations'
+             )`,
             (err, row) => {
                 if (err) {
                     console.error("Table verification failed:", err.message);
