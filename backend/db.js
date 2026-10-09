@@ -12,6 +12,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.log("Zynora SQLite database connected.");
 
     db.serialize(() => {
+        // Conversations table
         db.run(`
             CREATE TABLE IF NOT EXISTS Conversations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,6 +23,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             )
         `);
 
+        // Messages table
         db.run(`
             CREATE TABLE IF NOT EXISTS Messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,6 +38,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             )
         `);
 
+        // Message sources table
         db.run(`
             CREATE TABLE IF NOT EXISTS MessageSources (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,6 +52,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             )
         `);
 
+        // AI response evaluations table
         db.run(`
             CREATE TABLE IF NOT EXISTS AIResponseEvaluations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,31 +70,55 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 FOREIGN KEY (conversation_id) REFERENCES Conversations(id),
                 FOREIGN KEY (message_id) REFERENCES Messages(id)
             )
-        `, (tableError) => {
-            if (tableError) {
-                console.error(
-                    "AIResponseEvaluations table creation failed:",
-                    tableError.message
-                );
-            } else {
-                console.log("AIResponseEvaluations table ready.");
-            }
-        });
+        `);
 
+        // Production logs table
+        db.run(`
+            CREATE TABLE IF NOT EXISTS ProductionLogs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+                user_id TEXT,
+                action TEXT,
+                module TEXT,
+                status TEXT,
+                error TEXT,
+                request_id TEXT
+            )
+        `);
+
+        // Verify that the tables exist
         db.each(
-            `SELECT name FROM sqlite_master
+            `SELECT name
+             FROM sqlite_master
              WHERE type = 'table'
              AND name IN (
                  'Conversations',
                  'Messages',
                  'MessageSources',
-                 'AIResponseEvaluations'
+                 'AIResponseEvaluations',
+                 'ProductionLogs'
              )`,
             (err, row) => {
                 if (err) {
-                    console.error("Table verification failed:", err.message);
+                    console.error(
+                        "Table verification failed:",
+                        err.message
+                    );
                 } else {
                     console.log("Database table ready:", row.name);
+                }
+            },
+            (err, count) => {
+                if (err) {
+                    console.error(
+                        "Database table verification error:",
+                        err.message
+                    );
+                } else {
+                    console.log(
+                        "Database tables verified:",
+                        count
+                    );
                 }
             }
         );
