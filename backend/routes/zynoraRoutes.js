@@ -17,7 +17,6 @@ function runQuery(sql, params = []) {
       }
     });
   });
-}
 
 // --------------------------------------------------
 // Helper: Get SQLite rows
@@ -95,10 +94,18 @@ function extractKnowledgeSection(content, section) {
     return null;
   }
 
-  if (section === "mission") {
-    const match = text.match(
-      /Our Mission\s*(.*?)(?=Zyngram includes a franchise)/is
-    );
+  
+if (section === "mission") {
+  const match = text.match(
+    /Our Mission\s*:?\s*([\s\S]*?)$/i
+  );
+
+  if (match) {
+    return match[1].trim();
+  }
+
+  return null;
+}
 
     if (match) {
       return match[1].trim();
