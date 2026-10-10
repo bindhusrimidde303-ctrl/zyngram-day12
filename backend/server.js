@@ -3,7 +3,7 @@ const zynoraRoutes = require("./routes/zynoraRoutes");
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-
+const db = require("./db");
 const app = express();
 const zynoraRateLimiter = rateLimit({
     windowMs: 60 * 1000,
@@ -43,10 +43,19 @@ app.use("/api/commission", commissionRoutes);
 app.use("/api/ledger", ledgerRoutes);
 app.use("/api/ai", aiRoutes);
 
-
 app.get("/", (req, res) => {
   res.json({
     message: "Zyngram AI Service Platform Backend is running"
+  });
+});
+
+
+// Application Version Verification API
+app.get("/api/version", (req, res) => {
+  res.json({
+    application: "Zynora",
+    version: "2.1",
+    status: "RUNNING"
   });
 });
 
