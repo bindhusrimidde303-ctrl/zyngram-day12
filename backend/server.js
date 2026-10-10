@@ -5,6 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 const db = require("./db");
 const app = express();
+app.set("trust proxy", 1);
 const zynoraRateLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 10,
